@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('security_settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
             $table->boolean('biometrics_active')->default(false);
             $table->integer('failed_attempts')->default(0);
             $table->timestamp('unlock_date')->nullable();

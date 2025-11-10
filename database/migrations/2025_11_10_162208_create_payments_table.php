@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('transaction_id')->constrained('transactions')->onDelete('cascade');
-            $table->foreignId('merchant_id')->constrained('merchants')->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('transaction_id')->constrained('transactions')->onDelete('cascade');
+            $table->foreignUuid('merchant_id')->constrained('merchants')->onDelete('cascade');
             $table->string('payment_method'); // QR Code or Payment Code
             $table->string('transaction_code')->nullable();
             $table->json('payment_details')->nullable();

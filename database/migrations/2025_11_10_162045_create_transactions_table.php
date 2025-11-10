@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sender_id')->nullable()->constrained('users');
-            $table->foreignId('receiver_id')->constrained('users');
-            $table->foreignId('sender_wallet_id')->nullable()->constrained('wallets');
-            $table->foreignId('receiver_wallet_id')->nullable()->constrained('wallets');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('sender_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignUuid('receiver_id')->constrained('users')->onDelete('cascade');
+            $table->foreignUuid('sender_wallet_id')->nullable()->constrained('wallets')->onDelete('set null');
+            $table->foreignUuid('receiver_wallet_id')->nullable()->constrained('wallets')->onDelete('set null');
             $table->decimal('amount', 15, 2);
             $table->decimal('fees', 8, 2)->default(0);
             $table->string('type'); // deposit, withdrawal, transfer, payment

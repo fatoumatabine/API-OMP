@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('authentications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
             $table->string('access_token', 500);
             $table->string('refresh_token', 500);
             $table->timestamp('expires_at');

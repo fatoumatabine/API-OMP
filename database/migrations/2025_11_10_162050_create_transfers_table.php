@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transfers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('transaction_id')->constrained('transactions')->onDelete('cascade');
-            $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('transaction_id')->constrained('transactions')->onDelete('cascade');
+            $table->foreignUuid('sender_id')->constrained('users')->onDelete('cascade');
             $table->string('recipient_phone_number');
             $table->string('recipient_name')->nullable();
             $table->text('note')->nullable();

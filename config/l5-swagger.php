@@ -92,7 +92,7 @@ return [
             /*
              * Edit to set the api's base path
              */
-            'base' => env('L5_SWAGGER_BASE_PATH', 'http://127.0.0.1:8000/api/v1'),
+            'base' => env('L5_SWAGGER_BASE_PATH', 'https://ompay-4mgy.onrender.com/api'),
 
             /*
              * Absolute path to directories that should be excluded from scanning
@@ -313,7 +313,7 @@ return [
          * Constants which can be used in annotations
          */
         'constants' => [
-            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://127.0.0.1:8003'),
+            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'https://ompay-4mgy.onrender.com'),
         ],
     ],
 ];
