@@ -18,7 +18,7 @@
             "description": "Serveur local"
         },
         {
-            "url": "/api/v1"
+            "url": "https://ompay-4mgy.onrender.com/api/v1"
         }
     ],
     "paths": {
@@ -118,139 +118,6 @@
                     },
                     "401": {
                         "description": "Identifiants invalides"
-                    }
-                }
-            }
-        },
-        "/auth/register": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Enregistrer un nouvel utilisateur",
-                "operationId": "ed42f392010c301892e640067141676e",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "phone_number",
-                                    "first_name",
-                                    "last_name",
-                                    "email",
-                                    "password",
-                                    "password_confirmation",
-                                    "pin_code",
-                                    "cni_number"
-                                ],
-                                "properties": {
-                                    "phone_number": {
-                                        "type": "string",
-                                        "example": "+22245678901"
-                                    },
-                                    "first_name": {
-                                        "type": "string",
-                                        "example": "John"
-                                    },
-                                    "last_name": {
-                                        "type": "string",
-                                        "example": "Doe"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "john.doe@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password"
-                                    },
-                                    "password_confirmation": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password"
-                                    },
-                                    "pin_code": {
-                                        "type": "string",
-                                        "example": "1234"
-                                    },
-                                    "cni_number": {
-                                        "type": "string",
-                                        "example": "1234567890ABC"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Utilisateur enregistré avec succès",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Utilisateur enregistré avec succès"
-                                        },
-                                        "token": {
-                                            "type": "string",
-                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-                                        },
-                                        "user": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string",
-                                                    "example": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
-                                                },
-                                                "phone_number": {
-                                                    "type": "string",
-                                                    "example": "+22245678901"
-                                                },
-                                                "first_name": {
-                                                    "type": "string",
-                                                    "example": "John"
-                                                },
-                                                "last_name": {
-                                                    "type": "string",
-                                                    "example": "Doe"
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "format": "email",
-                                                    "example": "john.doe@example.com"
-                                                },
-                                                "kyc_status": {
-                                                    "type": "string",
-                                                    "example": "pending"
-                                                },
-                                                "biometrics_active": {
-                                                    "type": "boolean",
-                                                    "example": false
-                                                },
-                                                "created_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "updated_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Erreurs de validation"
                     }
                 }
             }
