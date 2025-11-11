@@ -8,19 +8,6 @@ Route::get('/', function () {
         'status' => 'OK',
         'version' => '1.0.0',
         'timestamp' => now()->toISOString(),
-        'documentation' => url('/api/documentation')
+        'documentation' => route('l5-swagger.default.api')
     ]);
-});
-
-// Swagger/OpenAPI routes
-Route::get('/api/documentation', function () {
-    return view('l5-swagger::index');
-});
-
-Route::get('/api-docs.json', function () {
-    $file = public_path('api-docs.json');
-    if (!file_exists($file)) {
-        $file = storage_path('api-docs/api-docs.json');
-    }
-    return response()->file($file);
 });

@@ -15,8 +15,7 @@
     }
     *,
     *:before,
-    *:after
-    {
+    *:after {
         box-sizing: inherit;
     }
 
