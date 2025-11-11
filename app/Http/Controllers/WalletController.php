@@ -17,7 +17,7 @@ class WalletController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/wallet/balance",
+     *     path="/v1/wallet/balance",
      *     summary="Obtenir le solde du compte",
      *     tags={"Wallet"},
      *     security={{"bearerAuth":{}}},
@@ -41,7 +41,7 @@ class WalletController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/wallet/deposit",
+     *     path="/v1/wallet/deposit",
      *     summary="Dépôt d'argent",
      *     tags={"Wallet"},
      *     security={{"bearerAuth":{}}},
@@ -70,7 +70,6 @@ class WalletController extends Controller
 
         return DB::transaction(function () use ($user, $wallet, $validated) {
             $wallet->increment('balance', $validated['amount']);
-            $wallet->update(['last_updated' => now()]);
 
             $transaction = Transaction::create([
                 'sender_wallet_id' => null,

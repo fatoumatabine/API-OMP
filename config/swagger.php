@@ -9,8 +9,8 @@ return [
                 'description' => 'API pour les services financiers mobile',
                 'version' => '1.0.0',
             ],
-            'host' => 'ompay-4mgy.onrender.com',
-            'basePath' => '/api',
+            'host' => env('APP_URL'),
+            'basePath' => '/api/v1',
             'schemes' => ['https'],
             'routes' => [
                 'api' => 'api/documentation',

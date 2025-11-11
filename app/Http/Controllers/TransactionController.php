@@ -52,7 +52,7 @@ class TransactionController extends Controller
             return response()->json(['error' => 'Destinataire non trouvé'], 404);
         }
 
-        if ($sender->solde < $validated['amount']) {
+        if ($sender->wallet->balance < $validated['amount']) {
             return response()->json(['error' => 'Solde insuffisant'], 400);
         }
 
@@ -84,7 +84,7 @@ class TransactionController extends Controller
             return response()->json([
                 'message' => 'Transfert effectué avec succès',
                 'transaction' => $transaction,
-                'new_balance' => $sender->solde
+                'new_balance' => $sender->wallet->balance
             ]);
         });
     }

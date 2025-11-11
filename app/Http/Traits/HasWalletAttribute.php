@@ -17,7 +17,6 @@ trait HasWalletAttribute
             $this->wallet()->create([
                 'balance' => 0,
                 'currency' => 'XOF',
-                'last_updated' => now(),
             ]);
         }
     }

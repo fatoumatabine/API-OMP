@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('transaction_id')->constrained('transactions')->onDelete('cascade');
-            $table->foreignUuid('merchant_id')->constrained('merchants')->onDelete('cascade');
+            $table->uuid('transaction_id');
+            $table->foreign('transaction_id')->references('id')->on('transactions')->onDelete('cascade');
+            $table->unsignedBigInteger('merchant_id');
+            $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
             $table->string('payment_method'); // QR Code or Payment Code
             $table->string('transaction_code')->nullable();
             $table->json('payment_details')->nullable();

@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('qr_codes', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('merchant_id')->constrained('merchants')->onDelete('cascade');
+            $table->unsignedBigInteger('merchant_id');
+            $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
             $table->string('data');
             $table->decimal('amount', 15, 2);
             $table->timestamp('generated_at')->useCurrent();

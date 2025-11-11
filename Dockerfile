@@ -84,16 +84,16 @@ USER root
 # RUN php artisan passport:keys --force
 
 
-# Générer la documentation Swagger
-RUN php artisan l5-swagger:generate --quiet
-
-
 # Copier la configuration de production
 COPY .env.production .env
 
 
 # Générer la clé d'application Laravel
 RUN php artisan key:generate
+
+
+# Générer la documentation Swagger
+RUN php artisan l5-swagger:generate --quiet
 
 
 # Permissions finales
@@ -121,4 +121,4 @@ nginx -g "daemon off;" & \\\n\
 php-fpm -F' > /start.sh && chmod +x /start.sh
 
 
-CMD ["/start.sh"] 
+CMD ["/start.sh"]

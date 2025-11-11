@@ -10,7 +10,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, HasWalletAttribute;
+    use HasFactory, HasUuids, HasWalletAttribute;
 
     protected $fillable = [
         'phone_number',

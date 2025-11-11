@@ -328,13 +328,13 @@
                 ]
             }
         },
-        "/wallet/balance": {
+        "/v1/wallet/balance": {
             "get": {
                 "tags": [
                     "Wallet"
                 ],
                 "summary": "Obtenir le solde du compte",
-                "operationId": "92f3a577ea5e73be9c1097a4fae57e4c",
+                "operationId": "dd3af443c2049b4ee08a8bbb6b009c7b",
                 "responses": {
                     "200": {
                         "description": "Solde récupéré avec succès"
@@ -347,13 +347,13 @@
                 ]
             }
         },
-        "/wallet/deposit": {
+        "/v1/wallet/deposit": {
             "post": {
                 "tags": [
                     "Wallet"
                 ],
                 "summary": "Dépôt d'argent",
-                "operationId": "566a24fb27cc48c154aa4e021a49547b",
+                "operationId": "bcff6bc99dec564c873ec30fee98ec59",
                 "requestBody": {
                     "required": true,
                     "content": {
