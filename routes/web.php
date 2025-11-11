@@ -18,5 +18,9 @@ Route::get('/api/documentation', function () {
 });
 
 Route::get('/api-docs.json', function () {
-    return response()->file(storage_path('api-docs/api-docs.json'));
+    $file = public_path('api-docs.json');
+    if (!file_exists($file)) {
+        $file = storage_path('api-docs/api-docs.json');
+    }
+    return response()->file($file);
 });
