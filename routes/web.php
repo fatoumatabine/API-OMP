@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -8,6 +9,6 @@ Route::get('/', function () {
         'status' => 'OK',
         'version' => '1.0.0',
         'timestamp' => now()->toISOString(),
-        'documentation' => route('l5-swagger.default.api')
+        'documentation' => 'Documentation API non disponible'
     ]);
 });

@@ -40,9 +40,10 @@ class TransactionController extends Controller
     public function transfer(Request $request)
     {
         $validated = $request->validate([
-            'receiver_phone' => 'required',
+            'receiver_phone' => 'required|string',
             'amount' => 'required|numeric|min:100',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'pin' => 'nullable|string'
         ]);
 
         $sender = Auth::user();

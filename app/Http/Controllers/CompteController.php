@@ -28,7 +28,7 @@ class CompteController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/v1/register",
+     *     path="/register",
      *     summary="Enregistrer un nouvel utilisateur",
      *     tags={"Compte"},
      *     @OA\RequestBody(

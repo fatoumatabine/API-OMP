@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Http\Traits\HasWalletAttribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,7 +9,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, HasUuids, HasWalletAttribute;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'phone_number',
@@ -18,12 +17,12 @@ class User extends Authenticatable implements JWTSubject
         'last_name',
         'email',
         'password',
-        'pin_code',
         'cni_number',
         'kyc_status',
         'biometrics_active',
-        'balance',
-        'status'
+        'status',
+        'pin_code',
+        'last_login_at',
     ];
 
     protected $hidden = [
@@ -35,8 +34,7 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'biometrics_active' => 'boolean',
-        'balance' => 'decimal:2',
-        'pin_code' => 'hashed',
+        'last_login_at' => 'datetime',
     ];
 
     public function getJWTIdentifier()
@@ -77,5 +75,14 @@ class User extends Authenticatable implements JWTSubject
     public function history()
     {
         return $this->hasOne(History::class);
+    }
+
+    public function initializeWallet()
+    {
+        $this->wallet()->create([
+            'currency' => 'XOF',
+            'balance' => 0,
+            'status' => 'active',
+        ]);
     }
 }

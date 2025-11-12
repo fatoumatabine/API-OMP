@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('pin_code')->nullable();
             $table->string('cni_number')->unique();
             $table->string('kyc_status')->default('pending');
-            $table->boolean('biometrics_active')->default(false);
+            $table->tinyInteger('biometrics_active')->default(0);
             $table->timestamp('last_login_at')->nullable();
         });
     }
