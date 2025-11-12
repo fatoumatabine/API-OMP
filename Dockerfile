@@ -12,6 +12,7 @@ RUN apk add --no-cache \
    oniguruma-dev \
    curl-dev \
    postgresql-dev \
+   netcat-openbsd \
    && docker-php-ext-configure gd --with-freetype --with-jpeg \
    && docker-php-ext-install pdo_mysql pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip curl
 
@@ -92,8 +93,8 @@ COPY .env.production .env
 RUN php artisan key:generate
 
 
-# Générer la documentation Swagger
-RUN php artisan l5-swagger:generate --quiet
+# Générer la documentation Swagger (sans migration)
+RUN php artisan config:clear && php artisan cache:clear && php artisan l5-swagger:generate --quiet || true
 
 
 # Permissions finales
@@ -108,17 +109,8 @@ EXPOSE 80
 
 
 
-# Script de démarrage
-RUN echo $'#!/bin/sh\n\
-php artisan config:clear && \\\n\
-php artisan cache:clear && \\\n\
-php artisan route:clear && \\\n\
-php artisan view:clear && \\\n\
-php artisan config:cache && \\\n\
-php artisan route:cache && \\\n\
-php artisan view:cache && \\\n\
-nginx -g "daemon off;" & \\\n\
-php-fpm -F' > /start.sh && chmod +x /start.sh
+# Copier le script d'entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-
-CMD ["/start.sh"]
+ENTRYPOINT ["/entrypoint.sh"]

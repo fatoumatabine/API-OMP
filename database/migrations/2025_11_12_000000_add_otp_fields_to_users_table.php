@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('pin_code')->nullable();
-            $table->string('cni_number')->unique();
-            $table->string('kyc_status')->default('pending');
-            $table->boolean('biometrics_active')->default(true);
-            $table->timestamp('last_login_at')->nullable();
+            $table->string('otp_code')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
+            $table->boolean('is_verified')->default(false);
+            $table->string('status')->default('unverified')->change();
         });
     }
 
@@ -26,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['pin_code', 'cni_number', 'kyc_status', 'biometrics_active', 'last_login_at']);
+            $table->dropColumn(['otp_code', 'otp_expires_at', 'is_verified']);
         });
     }
 };

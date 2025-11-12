@@ -19,8 +19,8 @@ paths:
     post:
       tags:
         - Authentification
-      summary: Login user
-      description: Login with phone number and password to get JWT token
+      summary: Initiate login with OTP
+      description: Authenticate user with phone number only. OTP will be sent via email.
       requestBody:
         required: true
         content:
@@ -31,17 +31,12 @@ paths:
                 phone_number:
                   type: string
                   example: "+33612345678"
-                  description: "Phone number used during registration"
-                password:
-                  type: string
-                  format: password
-                  example: "SecurePassword123"
+                  description: "Phone number in international format"
               required:
                 - phone_number
-                - password
       responses:
         '200':
-          description: Login successful
+          description: OTP sent successfully
           content:
             application/json:
               schema:
@@ -52,10 +47,23 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "OTP sent successfully"
-                  requires_otp_verification:
-                    type: boolean
-                    example: true
+                    example: "Code OTP envoyé à votre email"
+                  data:
+                    type: object
+                    properties:
+                      user_id:
+                        type: string
+                        format: uuid
+                        example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                      phone_number:
+                        type: string
+                        example: "+33612345678"
+                      email:
+                        type: string
+                        format: email
+                        example: "user@example.com"
+        '404':
+          description: User not found
         '422':
           description: Validation error
           content:
@@ -69,8 +77,8 @@ paths:
     post:
       tags:
         - Authentification
-      summary: Verify OTP
-      description: Verify the OTP sent to user's phone or email
+      summary: Verify OTP and get JWT token
+      description: Verify the OTP sent to user's email and obtain JWT access token
       requestBody:
         required: true
         content:
@@ -78,18 +86,20 @@ paths:
             schema:
               type: object
               properties:
-                phone_or_email:
+                phone_number:
                   type: string
-                  example: "1234567890"
+                  example: "+33612345678"
+                  description: "Phone number in international format"
                 otp:
                   type: string
                   example: "123456"
+                  description: "6-digit OTP code"
               required:
-                - phone_or_email
+                - phone_number
                 - otp
       responses:
         '200':
-          description: OTP verified successfully
+          description: OTP verified successfully - JWT token obtained
           content:
             application/json:
               schema:
@@ -100,12 +110,34 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Login successful"
-                  token:
-                    type: string
-                    example: "eyJ0eXAiOiJKV1QiLCJhbGc..."
-        '422':
-          description: Invalid OTP
+                    example: "OTP vérifié avec succès"
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGc..."
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                          phone_number:
+                            type: string
+                            example: "+33612345678"
+                          first_name:
+                            type: string
+                            example: "Jean"
+                          email:
+                            type: string
+                            format: email
+                            example: "jean.dupont@example.com"
+        '400':
+          description: Invalid or expired OTP
+        '404':
+          description: User not found
         '500':
           description: Server error
 
@@ -150,8 +182,8 @@ paths:
     post:
       tags:
         - Authentification
-      summary: Register new user
-      description: Register a new user account
+      summary: Register new user (Step 1)
+      description: Register a new user account. No password required at this step. OTP will be sent via email.
       requestBody:
         required: true
         content:
@@ -162,6 +194,7 @@ paths:
                 phone_number:
                   type: string
                   example: "+33612345678"
+                  description: "Phone number in international format"
                 first_name:
                   type: string
                   example: "Jean"
@@ -172,33 +205,24 @@ paths:
                   type: string
                   format: email
                   example: "jean.dupont@example.com"
-                password:
-                  type: string
-                  format: password
-                  example: "SecurePassword123"
-                password_confirmation:
-                  type: string
-                  format: password
-                  example: "SecurePassword123"
                 pin_code:
                   type: string
                   example: "1234"
-                  description: "4-digit PIN code"
+                  description: "4-digit PIN code for transactions"
                 cni_number:
                   type: string
                   example: "123456789"
+                  description: "National ID number"
               required:
                 - phone_number
                 - first_name
                 - last_name
                 - email
-                - password
-                - password_confirmation
                 - pin_code
                 - cni_number
       responses:
         '201':
-          description: User registered successfully
+          description: User registered - OTP sent to email
           content:
             application/json:
               schema:
@@ -209,9 +233,74 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "User registered successfully"
+                    example: "Un code OTP a été envoyé à votre email."
                   user:
                     $ref: '#/components/schemas/User'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '500':
+          description: Server error
+
+  /api/verify-otp:
+    post:
+      tags:
+        - Authentification
+      summary: Verify OTP and set password (Step 2)
+      description: Verify the OTP sent during registration and set the user's password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number:
+                  type: string
+                  example: "+33612345678"
+                  description: "Phone number in international format"
+                otp_code:
+                  type: string
+                  example: "123456"
+                  description: "6-digit OTP code sent to email"
+                password:
+                  type: string
+                  format: password
+                  example: "SecurePassword123"
+                  description: "User password (minimum 8 characters)"
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: "SecurePassword123"
+                  description: "Password confirmation"
+              required:
+                - phone_number
+                - otp_code
+                - password
+                - password_confirmation
+      responses:
+        '200':
+          description: Account verified - User can now login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Compte vérifié avec succès."
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid or expired OTP
+        '404':
+          description: User not found
         '422':
           description: Validation error
           content:

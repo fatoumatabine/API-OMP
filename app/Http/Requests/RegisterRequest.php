@@ -27,7 +27,6 @@ class RegisterRequest extends FormRequest
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
             'pin_code' => 'required|string|min:4|max:4',
             'cni_number' => 'required|string|unique:users|max:255',
         ];
@@ -48,9 +47,6 @@ class RegisterRequest extends FormRequest
             'email.required' => 'L\'adresse email est obligatoire.',
             'email.email' => 'L\'adresse email doit être valide.',
             'email.unique' => 'Cette adresse email est déjà utilisée.',
-            'password.required' => 'Le mot de passe est obligatoire.',
-            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
-            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
             'pin_code.required' => 'Le code PIN est obligatoire.',
             'pin_code.min' => 'Le code PIN doit contenir 4 chiffres.',
             'pin_code.max' => 'Le code PIN doit contenir 4 chiffres.',

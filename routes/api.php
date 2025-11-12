@@ -18,6 +18,7 @@ Route::post('auth/resend-otp', [AuthController::class, 'resendOtp'])->name('auth
 
 // Compte
 Route::post('register', [CompteController::class, 'register'])->middleware('log.creation')->name('register');
+Route::post('verify-otp', [CompteController::class, 'verifyOtp'])->middleware('log.creation')->name('verify-otp');
 
 
 // Protected routes

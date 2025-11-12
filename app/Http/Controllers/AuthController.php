@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\User;
+use App\Services\OtpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,67 +22,76 @@ class AuthController extends Controller
     use ApiResponseTrait;
 
     /**
-      * @OA\Post(
-      *     path="/api/auth/login",
-      *     summary="Connexion utilisateur",
-      *     description="Authentifier un utilisateur avec son numéro de téléphone et son mot de passe. Retourne un JWT token.",
-      *     tags={"Authentication"},
-      *     @OA\RequestBody(
-      *         required=true,
-      *         description="Identifiants de l'utilisateur",
-      *         @OA\JsonContent(
-      *             required={"phone_number", "password"},
-      *             @OA\Property(property="phone_number", type="string", example="+22145678901", description="Numéro de téléphone au format international"),
-      *             @OA\Property(property="password", type="string", format="password", example="password123", description="Mot de passe")
-      *         )
-      *     ),
-      *     @OA\Response(
-      *         response=200,
-      *         description="Connexion réussie",
-      *         @OA\JsonContent(
-      *             @OA\Property(property="success", type="boolean", example=true),
-      *             @OA\Property(property="message", type="string", example="Connexion réussie"),
-      *             @OA\Property(property="data", type="object",
-      *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-      *                 @OA\Property(property="user", type="object",
-      *                     @OA\Property(property="id", type="string", format="uuid", example="a1b2c3d4-e5f6-7890-1234-567890abcdef"),
-      *                     @OA\Property(property="phone_number", type="string", example="+22145678901"),
-      *                     @OA\Property(property="first_name", type="string", example="John"),
-      *                     @OA\Property(property="last_name", type="string", example="Doe"),
-      *                     @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
-      *                     @OA\Property(property="kyc_status", type="string", enum={"pending", "verified", "rejected"}),
-      *                     @OA\Property(property="biometrics_active", type="boolean", example=false),
-      *                     @OA\Property(property="balance", type="number", format="double", example=10000),
-      *                     @OA\Property(property="created_at", type="string", format="date-time"),
-      *                     @OA\Property(property="updated_at", type="string", format="date-time")
-      *                 )
-      *             )
-      *         )
-      *     ),
-      *     @OA\Response(
-      *         response=401,
-      *         description="Identifiants invalides",
-      *         @OA\JsonContent(
-      *             @OA\Property(property="success", type="boolean", example=false),
-      *             @OA\Property(property="message", type="string", example="Identifiants invalides")
-      *         )
-      *     )
-      * )
-      */
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     summary="Initier la connexion avec OTP",
+     *     description="Authentifier un utilisateur avec son numéro de téléphone. Un code OTP sera envoyé par email.",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Numéro de téléphone de l'utilisateur",
+     *         @OA\JsonContent(
+     *             required={"phone_number"},
+     *             @OA\Property(property="phone_number", type="string", example="+22145678901", description="Numéro de téléphone au format international")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="OTP envoyé avec succès",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Code OTP envoyé à votre email"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user_id", type="string", format="uuid", example="a1b2c3d4-e5f6-7890-1234-567890abcdef"),
+     *                 @OA\Property(property="phone_number", type="string", example="+22145678901"),
+     *                 @OA\Property(property="email", type="string", format="email", example="john.doe@example.com")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Utilisateur non trouvé",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Utilisateur non trouvé")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erreur de validation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="The given data was invalid"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function login(Request $request): JsonResponse
     {
-        $credentials = $request->only('phone_number', 'password');
+        try {
+            $request->validate([
+                'phone_number' => 'required|string|min:10',
+            ]);
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return $this->errorResponse('Identifiants invalides', 401);
+            $user = User::where('phone_number', $request->phone_number)->first();
+            
+            if (!$user) {
+                return $this->errorResponse('Utilisateur non trouvé', 404);
+            }
+
+            // Générer et envoyer OTP
+            $otpService = app(OtpService::class);
+            $otpService->generateAndSendOtp($user);
+
+            return $this->successResponse([
+                'user_id' => $user->id,
+                'phone_number' => $user->phone_number,
+                'email' => $user->email,
+            ], 'Code OTP envoyé à votre email', 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Erreur lors de la connexion: ' . $e->getMessage(), 500);
         }
-
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        return $this->successResponse([
-            'token' => $token,
-            'user' => $user
-        ], 'Connexion réussie');
     }
 
     /**
@@ -214,8 +224,8 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/verify-otp",
-     *     summary="Vérifier un code OTP",
+     *     path="/api/auth/verify-otp",
+     *     summary="Vérifier le code OTP et obtenir le token JWT",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -227,14 +237,28 @@ class AuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="OTP vérifié avec succès",
+     *         description="OTP vérifié avec succès - Token JWT obtenu",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="OTP vérifié avec succès")
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="OTP vérifié avec succès"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid"),
+     *                     @OA\Property(property="phone_number", type="string"),
+     *                     @OA\Property(property="first_name", type="string"),
+     *                     @OA\Property(property="email", type="string", format="email")
+     *                 )
+     *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=400,
      *         description="OTP invalide ou expiré"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Utilisateur non trouvé"
      *     )
      * )
      */
@@ -246,13 +270,28 @@ class AuthController extends Controller
                 'otp' => 'required|string|min:6|max:6',
             ]);
 
-            // Logique de vérification OTP (à implémenter)
-            // Pour l'instant, on simule une vérification réussie
-            if ($request->otp === '123456') { // Exemple simple
-                return $this->successResponse(null, 'OTP vérifié avec succès');
+            $user = User::where('phone_number', $request->phone_number)->first();
+
+            if (!$user) {
+                return $this->errorResponse('Utilisateur non trouvé', 404);
             }
 
-            return $this->errorResponse('OTP invalide ou expiré', 400);
+            $otpService = app(OtpService::class);
+
+            if (!$otpService->verifyOtp($user, $request->otp)) {
+                return $this->errorResponse('OTP invalide ou expiré', 400);
+            }
+
+            // Nettoyer l'OTP
+            $otpService->clearOtp($user);
+
+            // Générer le JWT token
+            $token = JWTAuth::fromUser($user);
+
+            return $this->successResponse([
+                'token' => $token,
+                'user' => $user->only(['id', 'phone_number', 'first_name', 'email']),
+            ], 'OTP vérifié avec succès', 200);
         } catch (\Exception $e) {
             return $this->errorResponse('Erreur lors de la vérification OTP: ' . $e->getMessage(), 500);
         }

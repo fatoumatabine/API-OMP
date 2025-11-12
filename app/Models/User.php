@@ -23,11 +23,15 @@ class User extends Authenticatable implements JWTSubject
         'status',
         'pin_code',
         'last_login_at',
+        'otp_code',
+        'otp_expires_at',
+        'is_verified',
     ];
 
     protected $hidden = [
         'password',
         'pin_code',
+        'otp_code',
     ];
 
     protected $casts = [
@@ -35,6 +39,8 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
         'biometrics_active' => 'boolean',
         'last_login_at' => 'datetime',
+        'otp_expires_at' => 'datetime',
+        'is_verified' => 'boolean',
     ];
 
     public function getJWTIdentifier()
