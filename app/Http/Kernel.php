@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'auth:api' => \App\Http\Middleware\JwtMiddleware::class,
         'log.creation' => \App\Http\Middleware\LoggingMiddleware::class,
+        'rate.limit' => \App\Http\Middleware\RateLimitMiddleware::class,
     ];
 }

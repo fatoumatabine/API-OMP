@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('payment_codes', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('transaction_id');
-            $table->foreign('transaction_id')->references('id')->on('transactions')->onDelete('cascade');
-            $table->unsignedBigInteger('merchant_id');
+            $table->uuid('merchant_id');
             $table->foreign('merchant_id')->references('id')->on('merchants')->onDelete('cascade');
-            $table->string('payment_method'); // QR Code or Payment Code
-            $table->string('transaction_code')->nullable();
-            $table->json('payment_details')->nullable();
+            $table->string('code')->unique();
+            $table->decimal('amount', 15, 2);
+            $table->timestamp('generated_at')->useCurrent();
+            $table->timestamp('expires_at');
+            $table->boolean('is_used')->default(false);
             $table->timestamps();
         });
     }
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('payment_codes');
     }
 };

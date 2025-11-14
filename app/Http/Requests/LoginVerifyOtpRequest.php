@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class VerifyOtpRequest extends FormRequest
+class LoginVerifyOtpRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -16,7 +16,6 @@ class VerifyOtpRequest extends FormRequest
         return [
             'phone_number' => 'required|string|min:10|regex:/^\+?[1-9]\d{1,14}$/',
             'otp' => 'required|string|size:6|regex:/^\d{6}$/',
-            'password' => 'required|string|min:8|confirmed',
         ];
     }
 
@@ -28,9 +27,6 @@ class VerifyOtpRequest extends FormRequest
             'otp.required' => 'Le code OTP est requis.',
             'otp.size' => 'Le code OTP doit contenir exactement 6 chiffres.',
             'otp.regex' => 'Le code OTP doit contenir uniquement des chiffres.',
-            'password.required' => 'Le mot de passe est requis.',
-            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
-            'password.confirmed' => 'Les mots de passe ne correspondent pas.',
         ];
     }
 }

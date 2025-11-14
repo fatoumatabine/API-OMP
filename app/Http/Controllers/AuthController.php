@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangePinRequest;
+use App\Http\Requests\CreatePinRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\LoginVerifyOtpRequest;
+use App\Http\Requests\ResendOtpRequest;
+use App\Http\Requests\VerifyOtpRequest;
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\User;
+use App\Services\AuditLogService;
 use App\Services\OtpService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -20,6 +26,13 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     use ApiResponseTrait;
+
+    private AuditLogService $auditService;
+
+    public function __construct(AuditLogService $auditService)
+    {
+        $this->auditService = $auditService;
+    }
 
     /**
      * @OA\Post(
@@ -67,13 +80,9 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
         try {
-            $request->validate([
-                'phone_number' => 'required|string|min:10',
-            ]);
-
             $user = User::where('phone_number', $request->phone_number)->first();
             
             if (!$user) {
@@ -153,22 +162,20 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function changePin(Request $request): JsonResponse
+    public function changePin(ChangePinRequest $request): JsonResponse
     {
-        $request->validate([
-            'old_pin' => 'required|string|min:4|max:4',
-            'new_pin' => 'required|string|min:4|max:4',
-        ]);
-
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if (!$user->pin_code || !Hash::check($request->old_pin, $user->pin_code)) {
+            $this->auditService->logPinChange($user, false, 'Invalid old PIN');
             return $this->errorResponse('Ancien code PIN invalide', 401);
         }
 
         $user->pin_code = Hash::make($request->new_pin);
         $user->save();
+
+        $this->auditService->logPinChange($user, true);
 
         return $this->successResponse(null, 'Code PIN changé avec succès');
     }
@@ -199,22 +206,21 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function createPin(Request $request): JsonResponse
+    public function createPin(CreatePinRequest $request): JsonResponse
     {
         try {
-            $request->validate([
-                'pin' => 'required|string|min:4|max:4',
-            ]);
-
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
             if ($user->pin_code) {
+                $this->auditService->logPinChange($user, false, 'PIN already exists');
                 return $this->errorResponse('Code PIN déjà existant', 400);
             }
 
             $user->pin_code = Hash::make($request->pin);
             $user->save();
+
+            $this->auditService->logPinChange($user, true);
 
             return $this->successResponse(null, 'Code PIN créé avec succès');
         } catch (\Exception $e) {
@@ -242,13 +248,7 @@ class AuthController extends Controller
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="OTP vérifié avec succès"),
      *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-     *                 @OA\Property(property="user", type="object",
-     *                     @OA\Property(property="id", type="string", format="uuid"),
-     *                     @OA\Property(property="phone_number", type="string"),
-     *                     @OA\Property(property="first_name", type="string"),
-     *                     @OA\Property(property="email", type="string", format="email")
-     *                 )
+     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...")
      *             )
      *         )
      *     ),
@@ -262,35 +262,37 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function verifyOtp(Request $request): JsonResponse
+    public function verifyOtp(LoginVerifyOtpRequest $request): JsonResponse
     {
         try {
-            $request->validate([
-                'phone_number' => 'required|string',
-                'otp' => 'required|string|min:6|max:6',
-            ]);
-
             $user = User::where('phone_number', $request->phone_number)->first();
 
             if (!$user) {
+                $this->auditService->logLoginAttempt($request->phone_number, false, 'User not found');
                 return $this->errorResponse('Utilisateur non trouvé', 404);
             }
 
             $otpService = app(OtpService::class);
 
             if (!$otpService->verifyOtp($user, $request->otp)) {
+                $this->auditService->logOtpVerification($user, false, 'Invalid or expired OTP');
                 return $this->errorResponse('OTP invalide ou expiré', 400);
             }
 
             // Nettoyer l'OTP
             $otpService->clearOtp($user);
 
+            // Log OTP verification success
+            $this->auditService->logOtpVerification($user, true);
+
             // Générer le JWT token
             $token = JWTAuth::fromUser($user);
 
+            // Log login success
+            $this->auditService->logLoginAttempt($user->phone_number, true);
+
             return $this->successResponse([
                 'token' => $token,
-                'user' => $user->only(['id', 'phone_number', 'first_name', 'email']),
             ], 'OTP vérifié avec succès', 200);
         } catch (\Exception $e) {
             return $this->errorResponse('Erreur lors de la vérification OTP: ' . $e->getMessage(), 500);
@@ -322,15 +324,23 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function resendOtp(Request $request): JsonResponse
+    public function resendOtp(ResendOtpRequest $request): JsonResponse
     {
-        $request->validate([
-            'phone_number' => 'required|string',
-        ]);
+        try {
+            $user = User::where('phone_number', $request->phone_number)->first();
+            
+            if (!$user) {
+                return $this->errorResponse('Utilisateur non trouvé', 404);
+            }
 
-        // Logique de renvoi OTP (à implémenter)
-        // Pour l'instant, on simule un renvoi réussi
-        return $this->successResponse(null, 'OTP renvoyé avec succès');
+            // Générer et envoyer OTP
+            $otpService = app(OtpService::class);
+            $otpService->generateAndSendOtp($user);
+
+            return $this->successResponse(null, 'OTP renvoyé avec succès');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Erreur lors du renvoi de l\'OTP: ' . $e->getMessage(), 500);
+        }
     }
 
     /**

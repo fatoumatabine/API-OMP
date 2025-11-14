@@ -1,0 +1,1499 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Orange Money API",
+        "description": "API pour les services financiers mobile",
+        "contact": {
+            "email": "support@orangemoney.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "https://ompay-4mgy.onrender.com",
+            "description": "Serveur de production"
+        },
+        {
+            "url": "http://localhost:8000",
+            "description": "Serveur local"
+        },
+        {
+            "url": ""
+        }
+    ],
+    "paths": {
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Initier la connexion avec OTP",
+                "description": "Authentifier un utilisateur avec son numéro de téléphone. Un code OTP sera envoyé par email.",
+                "operationId": "8dcb70df1020986038d098cc08d05dae",
+                "requestBody": {
+                    "description": "Numéro de téléphone de l'utilisateur",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone_number"
+                                ],
+                                "properties": {
+                                    "phone_number": {
+                                        "description": "Numéro de téléphone au format international",
+                                        "type": "string",
+                                        "example": "+22145678901"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP envoyé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Code OTP envoyé à votre email"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "+22145678901"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "format": "email",
+                                                    "example": "john.doe@example.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Utilisateur non trouvé"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh-token": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Rafraîchir le token API de l'utilisateur authentifié",
+                "operationId": "f63bd8623627d4788e5207877d1c582d",
+                "responses": {
+                    "200": {
+                        "description": "Token rafraîchi avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token rafraîchi avec succès"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Non autorisé"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/change-pin": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Changer le code PIN de l'utilisateur authentifié",
+                "operationId": "ac6946aab1853c773308b95e02284b3f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "old_pin",
+                                    "new_pin"
+                                ],
+                                "properties": {
+                                    "old_pin": {
+                                        "type": "string",
+                                        "example": "1234"
+                                    },
+                                    "new_pin": {
+                                        "type": "string",
+                                        "example": "5678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Code PIN changé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Code PIN changé avec succès"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Ancien code PIN invalide"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/create-pin": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Créer un code PIN pour l'utilisateur authentifié",
+                "operationId": "5b256573a6ee0b84e746a299fe5b914b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "pin"
+                                ],
+                                "properties": {
+                                    "pin": {
+                                        "type": "string",
+                                        "example": "1234"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Code PIN créé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Code PIN créé avec succès"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Code PIN déjà existant"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/auth/verify-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Vérifier le code OTP et obtenir le token JWT",
+                "operationId": "8d451369bebcf6d82f35d85565bb3e52",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone_number",
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "+22245678901"
+                                    },
+                                    "otp": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP vérifié avec succès - Token JWT obtenu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP vérifié avec succès"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "OTP invalide ou expiré"
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé"
+                    }
+                }
+            }
+        },
+        "/auth/resend-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Renvoyer un code OTP",
+                "operationId": "b65989f4c5d90ba56395d6e908e30a5b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone_number"
+                                ],
+                                "properties": {
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "+22245678901"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP renvoyé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP renvoyé avec succès"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Impossible de renvoyer l'OTP"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Déconnexion de l'utilisateur (invalide le token)",
+                "operationId": "0d29c740dc06d77602af8095bf4654cc",
+                "responses": {
+                    "200": {
+                        "description": "Déconnexion réussie",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Déconnexion réussie"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Non autorisé"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/register": {
+            "post": {
+                "tags": [
+                    "Compte"
+                ],
+                "summary": "Initier l'enregistrement avec envoi du code OTP",
+                "operationId": "4e8ed2678c6c483390329fcdbeda5d3c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone_number",
+                                    "first_name",
+                                    "last_name",
+                                    "email",
+                                    "pin_code",
+                                    "cni_number"
+                                ],
+                                "properties": {
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "+22245678901"
+                                    },
+                                    "first_name": {
+                                        "type": "string",
+                                        "example": "John"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john.doe@example.com"
+                                    },
+                                    "pin_code": {
+                                        "type": "string",
+                                        "example": "1234"
+                                    },
+                                    "cni_number": {
+                                        "type": "string",
+                                        "example": "1234567890ABC"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Code OTP envoyé avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Un code OTP a été envoyé à votre email."
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "+22245678901"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "format": "email",
+                                                    "example": "john.doe@example.com"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "unverified"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreurs de validation"
+                    }
+                }
+            }
+        },
+        "/verify-otp": {
+            "post": {
+                "tags": [
+                    "Compte"
+                ],
+                "summary": "Vérifier le code OTP et définir le mot de passe",
+                "operationId": "ab7a33c67549312d7a58d6272edf3c91",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone_number",
+                                    "otp_code",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "+22245678901"
+                                    },
+                                    "otp_code": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "SecurePassword123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "SecurePassword123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Compte vérifié avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Compte vérifié avec succès."
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "example": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+                                                },
+                                                "phone_number": {
+                                                    "type": "string",
+                                                    "example": "+22245678901"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "verified"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Code OTP invalide ou expiré"
+                    },
+                    "404": {
+                        "description": "Utilisateur non trouvé"
+                    }
+                }
+            }
+        },
+        "/compte/dashboard": {
+            "get": {
+                "tags": [
+                    "Compte"
+                ],
+                "summary": "Obtenir le tableau de bord du compte utilisateur",
+                "operationId": "3af8e913a554a7ce3e81d7d6c340a037",
+                "responses": {
+                    "200": {
+                        "description": "Tableau de bord obtenu avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tableau de bord chargé avec succès"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "phone_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "first_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "last_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "format": "email"
+                                                        },
+                                                        "kyc_status": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "compte": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        },
+                                                        "account_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "balance": {
+                                                            "type": "number",
+                                                            "format": "float"
+                                                        },
+                                                        "currency": {
+                                                            "type": "string"
+                                                        },
+                                                        "qr_code": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "transactions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "type": {
+                                                                "type": "string"
+                                                            },
+                                                            "amount": {
+                                                                "type": "number",
+                                                                "format": "float"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/comptes/{id}/solde": {
+            "get": {
+                "tags": [
+                    "Compte"
+                ],
+                "summary": "Obtenir le solde d'un compte par ID",
+                "operationId": "12830dfc78bf2435216e40182166bb46",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du wallet/compte",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solde obtenu avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Solde du compte"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "account_number": {
+                                                    "type": "string"
+                                                },
+                                                "balance": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "currency": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Compte non trouvé"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/compte/{id}/depot": {
+            "post": {
+                "tags": [
+                    "Compte"
+                ],
+                "summary": "Effectuer un dépôt sur un compte",
+                "operationId": "1334366f3eab518c12c3f50facd1aab6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du wallet/compte",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5000
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Dépôt initial",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Dépôt effectué avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dépôt effectué avec succès"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "new_balance": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "transaction_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Montant invalide ou manquant"
+                    },
+                    "404": {
+                        "description": "Compte non trouvé"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/compte/{id}/payment": {
+            "post": {
+                "tags": [
+                    "Compte"
+                ],
+                "summary": "Effectuer un paiement depuis un compte",
+                "operationId": "8a13f0a13eaac4dd4c36f6a189cd44b3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du wallet/compte de l'émetteur",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount",
+                                    "recipient_identifier",
+                                    "payment_type"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 1000
+                                    },
+                                    "recipient_identifier": {
+                                        "type": "string",
+                                        "example": "1234567890"
+                                    },
+                                    "payment_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "phone_number",
+                                            "merchant_code"
+                                        ],
+                                        "example": "phone_number"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Paiement de facture",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Paiement effectué avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Paiement effectué avec succès"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "new_balance": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "transaction_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erreur de validation ou fonds insuffisants"
+                    },
+                    "404": {
+                        "description": "Compte émetteur ou destinataire non trouvé"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "500": {
+                        "description": "Erreur interne du serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Vérifier la santé de l'API",
+                "operationId": "8420aba97b719dd1ea9d502c2daea22d",
+                "responses": {
+                    "200": {
+                        "description": "API en bonne santé",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "uptime": {
+                                            "description": "Uptime en secondes",
+                                            "type": "integer"
+                                        },
+                                        "database": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "version": {
+                                            "type": "string",
+                                            "example": "1.0.1"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service indisponible"
+                    }
+                }
+            }
+        },
+        "/api/health/detailed": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Vérifier la santé détaillée de l'API",
+                "operationId": "b8e7aa17a23ff17fb046784c24620f3b",
+                "responses": {
+                    "200": {
+                        "description": "Santé détaillée de l'API",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "ok"
+                                        },
+                                        "checks": {
+                                            "properties": {
+                                                "database": {
+                                                    "type": "boolean"
+                                                },
+                                                "cache": {
+                                                    "type": "boolean"
+                                                },
+                                                "disk": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/transfer": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Effectuer un transfert d'argent",
+                "operationId": "f5c88591ca5dacf77aaea5b9f6501116",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "receiver_phone",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "receiver_phone": {
+                                        "type": "string",
+                                        "example": "771234568"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5000
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Transfert familial"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transfert effectué avec succès"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/transactions/history": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Historique des transactions",
+                "operationId": "8b99176af7f5e4dae053dfe23da0eed2",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Numéro de page",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des transactions"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/compte/{id}/transactions": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Historique des transactions d'un compte",
+                "operationId": "bbf2311e4824d423e9da7e5c99d67f16",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du wallet/compte",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Historique des transactions du compte",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Transactions du compte"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "type": {
+                                                        "type": "string"
+                                                    },
+                                                    "amount": {
+                                                        "type": "number",
+                                                        "format": "float"
+                                                    },
+                                                    "fees": {
+                                                        "type": "number",
+                                                        "format": "float"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "reference": {
+                                                        "type": "string"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "404": {
+                        "description": "Compte non trouvé"
+                    },
+                    "500": {
+                        "description": "Erreur interne du serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/compte/{id}/payment-merchant": {
+            "post": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Effectuer un paiement à un marchand",
+                "operationId": "0ed60ab81c11b8004cc6536ab679da87",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID du wallet/compte de l'émetteur",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "merchant_identifier",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "merchant_identifier": {
+                                        "type": "string",
+                                        "example": "771234567"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5000
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Paiement marchand",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Paiement marchand effectué avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Paiement effectué avec succès"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "transaction_id": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "amount": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "fees": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "total_amount": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "merchant_identifier": {
+                                                    "type": "string"
+                                                },
+                                                "new_balance": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "merchant_new_balance": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "reference": {
+                                                    "type": "string"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solde insuffisant"
+                    },
+                    "401": {
+                        "description": "Non authentifié"
+                    },
+                    "404": {
+                        "description": "Compte non trouvé ou marchand non trouvé"
+                    },
+                    "422": {
+                        "description": "Erreur de validation"
+                    },
+                    "500": {
+                        "description": "Erreur interne du serveur"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/wallet/balance": {
+            "get": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Obtenir le solde du compte",
+                "operationId": "dd3af443c2049b4ee08a8bbb6b009c7b",
+                "responses": {
+                    "200": {
+                        "description": "Solde récupéré avec succès"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/wallet/deposit": {
+            "post": {
+                "tags": [
+                    "Wallet"
+                ],
+                "summary": "Dépôt d'argent",
+                "operationId": "bcff6bc99dec564c873ec30fee98ec59",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 10000
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Dépôt effectué avec succès"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Endpoints pour l'authentification"
+        },
+        {
+            "name": "Compte",
+            "description": "API Endpoints pour la gestion des comptes utilisateurs"
+        },
+        {
+            "name": "Health",
+            "description": "Endpoints pour la santé de l'API"
+        },
+        {
+            "name": "Transactions",
+            "description": "Endpoints pour la gestion des transactions"
+        },
+        {
+            "name": "Wallet",
+            "description": "Endpoints pour la gestion du portefeuille"
+        }
+    ]
+}

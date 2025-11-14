@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DepositRequest;
 use App\Models\Transaction;
-use Illuminate\Http\Request;
+use App\Services\AuditLogService;
+use App\Services\CacheService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +17,15 @@ use Illuminate\Support\Facades\DB;
  */
 class WalletController extends Controller
 {
+    private AuditLogService $auditService;
+    private CacheService $cacheService;
+
+    public function __construct(AuditLogService $auditService, CacheService $cacheService)
+    {
+        $this->auditService = $auditService;
+        $this->cacheService = $cacheService;
+    }
+
     /**
      * @OA\Get(
      *     path="/v1/wallet/balance",
@@ -31,11 +42,26 @@ class WalletController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        
+        // Try to get from cache first
+        $cached = $this->cacheService->getBalance($user);
+        if ($cached !== null) {
+            return response()->json([
+                'balance' => $cached,
+                'currency' => $user->wallet->currency,
+                'cached' => true
+            ]);
+        }
+        
         $wallet = $user->wallet;
+        
+        // Cache the balance
+        $this->cacheService->setBalance($user, (string)$wallet->balance);
         
         return response()->json([
             'balance' => $wallet->balance,
-            'currency' => $wallet->currency
+            'currency' => $wallet->currency,
+            'cached' => false
         ]);
     }
 
@@ -58,11 +84,9 @@ class WalletController extends Controller
      *     )
      * )
      */
-    public function deposit(Request $request)
+    public function deposit(DepositRequest $request)
     {
-        $validated = $request->validate([
-            'amount' => 'required|numeric|min:100'
-        ]);
+        $validated = $request->validated();
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -82,6 +106,13 @@ class WalletController extends Controller
                 'reference' => 'DEP' . time(),
                 'description' => 'Dépôt d\'argent'
             ]);
+
+            // Log audit trail
+            $this->auditService->logDeposit($user, $validated['amount'], true);
+
+            // Invalidate cache
+            $this->cacheService->invalidateBalance($user);
+            $this->cacheService->invalidateAllHistory($user);
 
             return response()->json([
                 'message' => 'Dépôt effectué avec succès',
