@@ -2,23 +2,7 @@
 
 echo "Starting OMPAY application..."
 
-# Créer .env s'il n'existe pas
-if [ ! -f /var/www/html/.env ]; then
-    echo "Creating .env from environment variables..."
-    cat > /var/www/html/.env << EOF
-APP_NAME=OMPAY
-APP_ENV=${APP_ENV:-production}
-APP_KEY=${APP_KEY:-}
-APP_DEBUG=${APP_DEBUG:-false}
-APP_URL=${APP_URL:-https://ompay-4mgy.onrender.com}
-DB_CONNECTION=pgsql
-DATABASE_URL=${DATABASE_URL:-}
-SESSION_DRIVER=database
-CACHE_STORE=database
-QUEUE_CONNECTION=database
-EOF
-    echo ".env created successfully"
-fi
+
 
 # Force clear all caches
 php artisan config:clear || true
@@ -56,5 +40,10 @@ NGINX_PID=$!
 php-fpm -F &
 FPM_PID=$!
 
+# Démarrer le queue worker (pour les jobs en arrière-plan)
+echo "Starting queue worker..."
+php artisan queue:work --queue=default,otp --tries=3 &
+QUEUE_PID=$!
+
 # Attendre les processus
-wait $NGINX_PID $FPM_PID
+wait $NGINX_PID $FPM_PID $QUEUE_PID
