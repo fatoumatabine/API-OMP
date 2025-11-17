@@ -29,5 +29,9 @@ class DatabaseSeeder extends Seeder
             'biometrics_active' => false,
             'last_login_at' => now(),
         ]);
+
+        $this->call([
+            ComptesSeeder::class,
+        ]);
     }
 }

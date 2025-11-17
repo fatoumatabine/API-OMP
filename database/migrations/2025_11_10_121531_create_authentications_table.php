@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('qr_codes', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('merchant_id')->constrained('merchants')->onDelete('cascade');
-            $table->string('data');
-            $table->decimal('amount', 15, 2);
-            $table->timestamp('generated_at')->useCurrent();
+        Schema::create('authentications', function (Blueprint $table) {
+            $table->id();
+            $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('access_token', 500);
+            $table->string('refresh_token', 500);
             $table->timestamp('expires_at');
-            $table->boolean('is_used')->default(false);
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('qr_codes');
+        Schema::dropIfExists('authentications');
     }
 };
