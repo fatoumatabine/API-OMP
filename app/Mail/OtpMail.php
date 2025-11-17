@@ -21,6 +21,7 @@ class OtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            to: $this->user->email,
             subject: 'Votre code OTP - OMPAY',
             from: config('mail.from.address'),
         );
