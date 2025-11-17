@@ -62,15 +62,19 @@ class OtpService
     {
         try {
             // Log de la configuration SMTP
-            Log::info("Configuration SMTP:", [
+            $config = [
                 'mailer' => config('mail.mailer'),
                 'host' => config('mail.host'),
                 'port' => config('mail.port'),
                 'username' => config('mail.username'),
                 'from' => config('mail.from.address'),
                 'queue' => config('queue.default'),
-            ]);
+            ];
             
+            fwrite(STDERR, "[OTP] Configuration SMTP: " . json_encode($config) . "\n");
+            Log::info("Configuration SMTP:", $config);
+            
+            fwrite(STDERR, "[OTP] Envoi OTP direct à {$user->email}\n");
             Log::info("Envoi OTP direct à {$user->email}");
             
             Mail::send('emails.otp', [
@@ -82,8 +86,12 @@ class OtpService
                         ->from(config('mail.from.address'));
             });
             
+            fwrite(STDERR, "[OTP] Email envoyé avec succès à {$user->email}\n");
             Log::info("OTP email envoyé avec succès à {$user->email}");
         } catch (\Exception $e) {
+            $errorMsg = "Erreur envoi OTP direct à {$user->email}: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString();
+            fwrite(STDERR, "[OTP ERROR] " . $errorMsg . "\n");
+            
             Log::error("Erreur envoi OTP direct à {$user->email}: " . $e->getMessage(), [
                 'exception' => $e,
                 'trace' => $e->getTraceAsString(),
