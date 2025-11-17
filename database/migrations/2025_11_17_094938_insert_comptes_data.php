@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::table('comptes')->insert([
+        // Insérer uniquement si les données n'existent pas
+        DB::table('comptes')->insertOrIgnore([
             [
                 'id' => Str::uuid(),
                 'user_id' => Str::uuid(),
