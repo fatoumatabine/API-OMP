@@ -93,8 +93,7 @@ RUN php artisan key:generate --force || true
 RUN php artisan config:clear && php artisan cache:clear && php artisan l5-swagger:generate --quiet || true
 
 
-# Environment variables are managed by Render
-# Do not copy .env files - let Render use its environment variables
+COPY .env.production .env
 
 # Permissions finales
 RUN chown -R www-data:www-data /var/www/html && \
