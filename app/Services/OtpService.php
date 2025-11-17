@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use App\Jobs\SendOtpEmail;
 
 class OtpService
 {
@@ -30,18 +32,68 @@ class OtpService
     }
 
     /**
-     * Envoyer l'OTP par email (en arrière-plan)
+     * Envoyer l'OTP par email (synchrone ou via queue selon la config)
      */
     private function sendOtpByEmail(User $user, string $otpCode): void
     {
         try {
-            // Log l'OTP pour développement
-            \Log::info("OTP généré pour {$user->email}: {$otpCode}");
+            Log::info("OTP généré pour {$user->email}: {$otpCode}");
             
-            // TODO: Implémenter l'envoi d'email via queue
-            // Mail::queue('emails.otp', [...], function(...) { ... });
+            // En production: envoyer directement (synchrone)
+            // Ou via queue job si QUEUE_CONNECTION=database
+            if (config('queue.default') === 'sync') {
+                // Mode synchrone (direct)
+                $this->sendDirectly($user, $otpCode);
+            } else {
+                // Mode asynchrone (queue job)
+                SendOtpEmail::dispatch($user, $otpCode);
+                Log::info("Job SendOtpEmail dispatché pour {$user->email}");
+            }
         } catch (\Exception $e) {
-            \Log::error('Erreur OTP: ' . $e->getMessage());
+            Log::error('Erreur OTP: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Envoyer l'OTP directement sans queue
+     */
+    private function sendDirectly(User $user, string $otpCode): void
+    {
+        try {
+            // Log de la configuration SMTP
+            Log::info("Configuration SMTP:", [
+                'mailer' => config('mail.mailer'),
+                'host' => config('mail.host'),
+                'port' => config('mail.port'),
+                'username' => config('mail.username'),
+                'from' => config('mail.from.address'),
+                'queue' => config('queue.default'),
+            ]);
+            
+            Log::info("Envoi OTP direct à {$user->email}");
+            
+            Mail::send('emails.otp', [
+                'user' => $user,
+                'otp_code' => $otpCode,
+            ], function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Votre code OTP - OMPAY')
+                        ->from(config('mail.from.address'));
+            });
+            
+            Log::info("OTP email envoyé avec succès à {$user->email}");
+        } catch (\Exception $e) {
+            Log::error("Erreur envoi OTP direct à {$user->email}: " . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'mail_config' => [
+                    'mailer' => config('mail.mailer'),
+                    'host' => config('mail.host'),
+                    'port' => config('mail.port'),
+                ]
+            ]);
+            throw $e;
         }
     }
 
