@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use App\Jobs\SendOtpEmail;
 
 class OtpService
 {
@@ -53,16 +53,6 @@ class OtpService
     private function sendDirectly(User $user, string $otpCode): void
     {
         try {
-            // Log de la configuration SMTP
-            $config = [
-                'mailer' => config('mail.mailer'),
-                'host' => config('mail.host'),
-                'port' => config('mail.port'),
-                'username' => config('mail.username'),
-                'from' => config('mail.from.address'),
-            ];
-            
-            Log::info("Configuration SMTP:", $config);
             Log::info("Envoi OTP en queue à {$user->email}");
             
             // Vérifier que nous avons une adresse email valide
@@ -70,25 +60,14 @@ class OtpService
                 throw new \Exception("Email invalide pour l'utilisateur: " . ($user->email ?? 'NULL'));
             }
             
-            Mail::queue('emails.otp', [
-                'user' => $user,
-                'otp_code' => $otpCode,
-            ], function ($message) use ($user) {
-                $message->to($user->email)
-                        ->subject('Votre code OTP - OMPAY')
-                        ->from(config('mail.from.address'));
-            });
+            // Queue l'email avec la classe Mailable
+            Mail::queue(new OtpMail($user, $otpCode));
             
             Log::info("OTP email ajouté à la queue avec succès pour {$user->email}");
         } catch (\Exception $e) {
             Log::error("Erreur ajout OTP à queue pour {$user->email}: " . $e->getMessage(), [
                 'exception' => get_class($e),
                 'message' => $e->getMessage(),
-                'mail_config' => [
-                    'mailer' => config('mail.mailer'),
-                    'host' => config('mail.host'),
-                    'port' => config('mail.port'),
-                ]
             ]);
             
             throw $e;
