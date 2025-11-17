@@ -83,15 +83,23 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         try {
+            fwrite(STDERR, "[AUTH] Login attempt for phone: " . $request->phone_number . "\n");
+            
             $user = User::where('phone_number', $request->phone_number)->first();
             
             if (!$user) {
+                fwrite(STDERR, "[AUTH] User not found: " . $request->phone_number . "\n");
                 return $this->errorResponse('Utilisateur non trouvé', 404);
             }
 
+            fwrite(STDERR, "[AUTH] User found: " . $user->email . "\n");
+
             // Générer et envoyer OTP
             $otpService = app(OtpService::class);
+            fwrite(STDERR, "[AUTH] Sending OTP to " . $user->email . "\n");
             $otpService->generateAndSendOtp($user);
+            
+            fwrite(STDERR, "[AUTH] OTP sent successfully\n");
 
             return $this->successResponse([
                 'user_id' => $user->id,
@@ -99,6 +107,7 @@ class AuthController extends Controller
                 'email' => $user->email,
             ], 'Code OTP envoyé à votre email', 200);
         } catch (\Exception $e) {
+            fwrite(STDERR, "[AUTH ERROR] " . $e->getMessage() . " | Trace: " . $e->getTraceAsString() . "\n");
             return $this->errorResponse('Erreur lors de la connexion: ' . $e->getMessage(), 500);
         }
     }
