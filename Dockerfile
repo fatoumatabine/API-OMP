@@ -85,12 +85,8 @@ USER root
 # RUN php artisan passport:keys --force
 
 
-# Copier la configuration de production
-COPY .env.production .env
-
-
-# Générer la clé d'application Laravel
-RUN php artisan key:generate
+# Générer la clé d'application Laravel (si pas déjà présente)
+RUN php artisan key:generate --force || true
 
 
 # Générer la documentation Swagger (sans migration)

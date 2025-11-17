@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Interfaces\CompteServiceInterface;
 use App\Interfaces\UserServiceInterface;
 use App\Models\User;
+use App\Models\Compte;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class CompteService implements CompteServiceInterface
 {
@@ -32,6 +34,9 @@ class CompteService implements CompteServiceInterface
             unset($data['password']);
             
             $user = $this->userService->createUserForClient($data);
+            
+            // Créer automatiquement un compte pour l'utilisateur
+            $this->createUserCompte($user);
             
             // Générer et envoyer l'OTP
             $this->otpService->generateAndSendOtp($user);
@@ -73,5 +78,31 @@ class CompteService implements CompteServiceInterface
             $user = $this->userService->createUserForClient($data);
             return $user;
         });
+    }
+
+    /**
+     * Créer un compte pour un utilisateur
+     */
+    private function createUserCompte(User $user): Compte
+    {
+        return Compte::create([
+            'user_id' => $user->id,
+            'account_number' => $this->generateAccountNumber(),
+            'solde' => 0,
+            'devise' => 'XOF',
+            'status' => 'active',
+        ]);
+    }
+
+    /**
+     * Générer un numéro de compte unique
+     */
+    private function generateAccountNumber(): string
+    {
+        do {
+            $accountNumber = 'OMP' . date('Y') . str_pad(random_int(0, 9999999), 7, '0', STR_PAD_LEFT);
+        } while (Compte::where('account_number', $accountNumber)->exists());
+        
+        return $accountNumber;
     }
 }

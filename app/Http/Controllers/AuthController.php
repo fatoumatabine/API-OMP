@@ -105,7 +105,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/refresh-token",
+     *     path="/api/auth/refresh-token",
      *     summary="Rafraîchir le token API de l'utilisateur authentifié",
      *     tags={"Authentication"},
      *     security={{"bearerAuth":{}}},
@@ -137,7 +137,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/change-pin",
+     *     path="/api/auth/change-pin",
      *     summary="Changer le code PIN de l'utilisateur authentifié",
      *     tags={"Authentication"},
      *     security={{"bearerAuth":{}}},
@@ -182,7 +182,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/create-pin",
+     *     path="/api/auth/create-pin",
      *     summary="Créer un code PIN pour l'utilisateur authentifié",
      *     tags={"Authentication"},
      *     security={{"bearerAuth":{}}},
@@ -301,7 +301,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/resend-otp",
+     *     path="/api/auth/resend-otp",
      *     summary="Renvoyer un code OTP",
      *     tags={"Authentication"},
      *     @OA\RequestBody(
@@ -345,7 +345,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/logout",
+     *     path="/api/auth/logout",
      *     summary="Déconnexion de l'utilisateur (invalide le token)",
      *     tags={"Authentication"},
      *     security={{"bearerAuth":{}}},

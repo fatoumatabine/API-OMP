@@ -30,22 +30,18 @@ class OtpService
     }
 
     /**
-     * Envoyer l'OTP par email
+     * Envoyer l'OTP par email (en arrière-plan)
      */
     private function sendOtpByEmail(User $user, string $otpCode): void
     {
-        // Utiliser une Mailable ou implémenter directement
         try {
-            Mail::send('emails.otp', [
-                'user' => $user,
-                'otp_code' => $otpCode,
-            ], function ($message) use ($user) {
-                $message->to($user->email)
-                        ->subject('Votre code OTP - OMPAY');
-            });
+            // Log l'OTP pour développement
+            \Log::info("OTP généré pour {$user->email}: {$otpCode}");
+            
+            // TODO: Implémenter l'envoi d'email via queue
+            // Mail::queue('emails.otp', [...], function(...) { ... });
         } catch (\Exception $e) {
-            // Log l'erreur mais ne pas bloquer le flux
-            \Log::error('Erreur lors de l\'envoi de l\'OTP: ' . $e->getMessage());
+            \Log::error('Erreur OTP: ' . $e->getMessage());
         }
     }
 

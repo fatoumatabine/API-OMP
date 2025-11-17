@@ -28,7 +28,7 @@ class WalletController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/v1/wallet/balance",
+     *     path="/api/wallet/balance",
      *     summary="Obtenir le solde du compte",
      *     tags={"Wallet"},
      *     security={{"bearerAuth":{}}},
@@ -67,7 +67,7 @@ class WalletController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/v1/wallet/deposit",
+     *     path="/api/wallet/deposit",
      *     summary="Dépôt d'argent",
      *     tags={"Wallet"},
      *     security={{"bearerAuth":{}}},

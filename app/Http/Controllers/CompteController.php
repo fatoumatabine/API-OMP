@@ -33,7 +33,7 @@ class CompteController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/register",
+     *     path="/api/register",
      *     summary="Initier l'enregistrement avec envoi du code OTP",
      *     tags={"Compte"},
      *     @OA\RequestBody(
@@ -79,7 +79,7 @@ class CompteController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/verify-otp",
+     *     path="/api/verify-otp",
      *     summary="Vérifier le code OTP et définir le mot de passe",
      *     tags={"Compte"},
      *     @OA\RequestBody(
@@ -143,7 +143,7 @@ class CompteController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/compte/dashboard",
+     *     path="/api/compte/dashboard",
      *     summary="Obtenir le tableau de bord du compte utilisateur",
      *     tags={"Compte"},
      *     security={{"bearerAuth":{}}},
@@ -245,7 +245,7 @@ class CompteController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/comptes/{id}/solde",
+     *     path="/api/comptes/{id}/solde",
      *     summary="Obtenir le solde d'un compte par ID",
      *     tags={"Compte"},
      *     security={{"bearerAuth":{}}},
@@ -311,7 +311,7 @@ class CompteController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/compte/{id}/depot",
+     *     path="/api/compte/{id}/depot",
      *     summary="Effectuer un dépôt sur un compte",
      *     tags={"Compte"},
      *     security={{"bearerAuth":{}}},
@@ -415,7 +415,7 @@ class CompteController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/compte/{id}/payment",
+     *     path="/api/compte/{id}/payment",
      *     summary="Effectuer un paiement depuis un compte",
      *     tags={"Compte"},
      *     security={{"bearerAuth":{}}},

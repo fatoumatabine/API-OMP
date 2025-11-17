@@ -33,7 +33,7 @@ class TransactionController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/transactions/transfer",
+     *     path="/api/transactions/transfer",
      *     summary="Effectuer un transfert d'argent",
      *     tags={"Transactions"},
      *     security={{"bearerAuth":{}}},
@@ -113,7 +113,7 @@ class TransactionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/transactions/history",
+     *     path="/api/transactions/history",
      *     summary="Historique des transactions",
      *     tags={"Transactions"},
      *     security={{"bearerAuth":{}}},
@@ -164,7 +164,7 @@ class TransactionController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/compte/{id}/transactions",
+     *     path="/api/compte/{id}/transactions",
      *     summary="Historique des transactions d'un compte",
      *     tags={"Transactions"},
      *     security={{"bearerAuth":{}}},
@@ -244,7 +244,7 @@ class TransactionController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/compte/{id}/payment-merchant",
+     *     path="/api/compte/{id}/payment-merchant",
      *     summary="Effectuer un paiement à un marchand",
      *     tags={"Transactions"},
      *     security={{"bearerAuth":{}}},
