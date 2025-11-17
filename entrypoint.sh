@@ -42,7 +42,7 @@ FPM_PID=$!
 
 # Démarrer le queue worker (pour les jobs en arrière-plan)
 echo "Starting queue worker..."
-php artisan queue:work --queue=default,otp --tries=3 &
+php artisan queue:work database --sleep=3 --tries=3 --timeout=90 &
 QUEUE_PID=$!
 
 # Attendre les processus

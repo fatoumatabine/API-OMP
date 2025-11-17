@@ -39,16 +39,8 @@ class OtpService
         try {
             Log::info("OTP généré pour {$user->email}: {$otpCode}");
             
-            // En production: envoyer directement (synchrone)
-            // Ou via queue job si QUEUE_CONNECTION=database
-            if (config('queue.default') === 'sync') {
-                // Mode synchrone (direct)
-                $this->sendDirectly($user, $otpCode);
-            } else {
-                // Mode asynchrone (queue job)
-                SendOtpEmail::dispatch($user, $otpCode);
-                Log::info("Job SendOtpEmail dispatché pour {$user->email}");
-            }
+            // Toujours utiliser le mode synchrone en production pour éviter les problèmes de queue
+            $this->sendDirectly($user, $otpCode);
         } catch (\Exception $e) {
             Log::error('Erreur OTP: ' . $e->getMessage());
             throw $e;
@@ -56,7 +48,7 @@ class OtpService
     }
 
     /**
-     * Envoyer l'OTP directement sans queue
+     * Envoyer l'OTP via queue (asynchrone)
      */
     private function sendDirectly(User $user, string $otpCode): void
     {
@@ -68,16 +60,17 @@ class OtpService
                 'port' => config('mail.port'),
                 'username' => config('mail.username'),
                 'from' => config('mail.from.address'),
-                'queue' => config('queue.default'),
             ];
             
-            fwrite(STDERR, "[OTP] Configuration SMTP: " . json_encode($config) . "\n");
             Log::info("Configuration SMTP:", $config);
+            Log::info("Envoi OTP en queue à {$user->email}");
             
-            fwrite(STDERR, "[OTP] Envoi OTP direct à {$user->email}\n");
-            Log::info("Envoi OTP direct à {$user->email}");
+            // Vérifier que nous avons une adresse email valide
+            if (!$user->email || !filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                throw new \Exception("Email invalide pour l'utilisateur: " . ($user->email ?? 'NULL'));
+            }
             
-            Mail::send('emails.otp', [
+            Mail::queue('emails.otp', [
                 'user' => $user,
                 'otp_code' => $otpCode,
             ], function ($message) use ($user) {
@@ -86,21 +79,18 @@ class OtpService
                         ->from(config('mail.from.address'));
             });
             
-            fwrite(STDERR, "[OTP] Email envoyé avec succès à {$user->email}\n");
-            Log::info("OTP email envoyé avec succès à {$user->email}");
+            Log::info("OTP email ajouté à la queue avec succès pour {$user->email}");
         } catch (\Exception $e) {
-            $errorMsg = "Erreur envoi OTP direct à {$user->email}: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString();
-            fwrite(STDERR, "[OTP ERROR] " . $errorMsg . "\n");
-            
-            Log::error("Erreur envoi OTP direct à {$user->email}: " . $e->getMessage(), [
-                'exception' => $e,
-                'trace' => $e->getTraceAsString(),
+            Log::error("Erreur ajout OTP à queue pour {$user->email}: " . $e->getMessage(), [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
                 'mail_config' => [
                     'mailer' => config('mail.mailer'),
                     'host' => config('mail.host'),
                     'port' => config('mail.port'),
                 ]
             ]);
+            
             throw $e;
         }
     }
